@@ -8,12 +8,17 @@ openai.api_key = os.environ.get("OPENAI_API_KEY")
 @app.route("/analyze", methods=["POST"])
 def analyze():
     try:
-        data = request.json
-        image_b64 = data["image"]
-        prompt = data.get("user_prompt", "Describe this image.")
+        data = request.get_json(force=True)
 
-        print("Prompt received:", prompt[:50])
-        print("Image string length:", len(image_b64))
+        image_b64 = data.get("image")
+        prompt = data.get("user_prompt", "What is in this image?")
+
+        print("🧠 Prompt received:", prompt[:60])
+        print("🖼️ Image Base64 size:", len(image_b64) if image_b64 else "None")
+
+        # Safety check
+        if not image_b64:
+            raise ValueError("Missing image data")
 
         messages = [
             {
@@ -30,14 +35,15 @@ def analyze():
             messages=messages
         )
 
-        return jsonify({"reply": response.choices[0].message.content})
-    
+        reply = response.choices[0].message.content
+        print("✅ GPT-4o replied:", reply[:60])
+        return jsonify({"reply": reply})
+
     except Exception as e:
-        print("💥 Error occurred:", str(e))
+        print("💥 ERROR:", str(e))
         return jsonify({"error": str(e)}), 500
 
 
-# ✅ Server startup (outside the route)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
