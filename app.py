@@ -27,3 +27,8 @@ def analyze():
     )
 
     return jsonify({"reply": response.choices[0].message.content})
+
+# ✅ Server startup (outside the route)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
